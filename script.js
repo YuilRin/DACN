@@ -1,54 +1,76 @@
 
-// script.js
-function allowDrop(event) {
-    event.preventDefault();
+const socket = io("http://localhost:3000");
+
+function fetchTasks() {
+    fetch("http://localhost:3000/tasks")
+        .then(response => response.json())
+        .then(tasks => {
+            document.getElementById("task-list").innerHTML = "";
+            ["todo", "in-progress", "done"].forEach(id => {
+                document.getElementById(id).querySelector(".task-container").innerHTML = "";
+            });
+            tasks.forEach(task => renderTask(task));
+        });
 }
 
-function drag(event) {
-    event.dataTransfer.setData("text", event.target.id);
-}
+function renderTask(task) {
+    let table = document.getElementById("task-list");
+    let row = table.insertRow();
+    row.id = "task-" + task.id;
+    row.innerHTML = `
+        <td>${task.key}</td>
+        <td contenteditable="true" oninput="updateTaskText('${task.id}')">${task.summary}</td>
+        <td>
+            <select onchange="updateTaskStatus('${task.id}', this.value)">
+                <option value="todo" ${task.status === "todo" ? "selected" : ""}>To Do</option>
+                <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
+                <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
+            </select>
+        </td>
+        <td><button onclick="deleteTask('${task.id}')">Delete</button></td>
+    `;
 
-function drop(event) {
-    event.preventDefault();
-    var data = event.dataTransfer.getData("text");
-    var task = document.getElementById(data);
-    
-    if (event.target.classList.contains("column")) {
-        event.target.appendChild(task);
-    } else if (event.target.parentElement.classList.contains("column")) {
-        event.target.parentElement.appendChild(task);
-    }
+    let kanbanTask = document.createElement("div");
+    kanbanTask.className = "task";
+    kanbanTask.id = "kanban-task-" + task.id;
+    kanbanTask.draggable = true;
+    kanbanTask.ondragstart = drag;
+    kanbanTask.innerHTML = `${task.summary} <button onclick="deleteTask('${task.id}')">X</button>`;
+    document.getElementById(task.status).querySelector(".task-container").appendChild(kanbanTask);
 }
 
 function addTask() {
-    let taskText = prompt("Enter task name:");
+    let taskText = prompt("Enter task summary:");
     if (taskText) {
-        let task = document.createElement("div");
-        task.className = "task";
-        task.draggable = true;
-        task.ondragstart = drag;
-        task.onclick = editTask;
-        task.id = "task-" + new Date().getTime();
-        
-        let taskContent = document.createElement("span");
-        taskContent.innerText = taskText;
-        task.appendChild(taskContent);
-        
-        let deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-btn";
-        deleteBtn.innerText = "X";
-        deleteBtn.onclick = function() { task.remove(); };
-        task.appendChild(deleteBtn);
-        
-        document.getElementById("todo").appendChild(task);
+        fetch("http://localhost:3000/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ summary: taskText, status: "todo" })
+        }).then(fetchTasks);
     }
 }
 
-function editTask(event) {
-    if (event.target.tagName === "SPAN") {
-        let newText = prompt("Edit task name:", event.target.innerText);
-        if (newText) {
-            event.target.innerText = newText;
-        }
-    }
+function updateTaskText(taskId) {
+    let summary = document.getElementById("task-" + taskId).cells[1].innerText;
+    fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary })
+    });
 }
+
+function updateTaskStatus(taskId, status) {
+    fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+    }).then(fetchTasks);
+}
+
+function deleteTask(taskId) {
+    fetch(`http://localhost:3000/tasks/${taskId}`, { method: "DELETE" }).then(fetchTasks);
+}
+
+socket.on("update", fetchTasks);
+
+fetchTasks();

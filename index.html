@@ -4,23 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board</title>
+    <title>Task Manager</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 </head>
 <body>
-    <h2>Kanban Board</h2>
+    <h2>Task Manager</h2>
+    <button onclick="toggleView()">Toggle View</button>
     <button onclick="addTask()">Add Task</button>
-    <div class="board">
-        <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+    
+    <div id="list-view">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="task-list">
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="kanban-view" class="hidden">
+        <div class="kanban-column" id="todo">
             <h3>To Do</h3>
+            <div class="task-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
         </div>
-        <div class="column" id="inprogress" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="kanban-column" id="in-progress">
             <h3>In Progress</h3>
+            <div class="task-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
         </div>
-        <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="kanban-column" id="done">
             <h3>Done</h3>
+            <div class="task-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
         </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
