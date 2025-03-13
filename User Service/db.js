@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'YuilRin*123',  // Thay bằng mật khẩu thực tế
+    password: 'YuilRin*123', 
     database: 'user_service',
     waitForConnections: true,
     connectionLimit: 10,

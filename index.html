@@ -9,6 +9,15 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 </head>
 <body>
+    <div id="auth">
+        <h2>Login / Register</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="email" id="email" placeholder="Email"> <!-- Thêm email -->
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+        
+    </div>
     <h2>Task Manager</h2>
     <button onclick="toggleView()">Toggle View</button>
     <button onclick="addTask()">Add Task</button>
@@ -42,6 +51,8 @@
             <div class="task-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
         </div>
     </div>
+   
+    
     
     <script src="script.js"></script>
 </body>

@@ -7,6 +7,8 @@ const db = require('./db');
 const { Sequelize, DataTypes } = require('sequelize');
 require('dotenv').config();
 
+
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
@@ -26,6 +28,9 @@ const User = sequelize.define('User', {
 
 sequelize.sync();
 
+const cors = require('cors')
+app.use(cors())
+
 app.use(bodyParser.json());
 
 // Lấy danh sách tất cả user (chỉ hiển thị id, username, email)
@@ -43,14 +48,18 @@ app.get('/users', async (req, res) => {
 // Đăng ký
 app.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, email, password } = req.body; // Lấy email từ request
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, password: hashedPassword });
+        const user = await User.create({ username, email, password: hashedPassword });
         res.status(201).json({ message: 'User registered', user });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 });
+
 
 // Đăng nhập
 app.post('/login', async (req, res) => {

@@ -1,17 +1,71 @@
+const API_URL = "http://localhost:4000"; // User service
+async function register() {
+    const username = document.getElementById("username").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-const socket = io("http://localhost:3000");
+    const bodyData = { username, email, password };
+    console.log("Sending request:", bodyData); // Debug log
 
-function fetchTasks() {
-    fetch("http://localhost:3000/tasks")
-        .then(response => response.json())
-        .then(tasks => {
-            document.getElementById("task-list").innerHTML = "";
-            ["todo", "in-progress", "done"].forEach(id => {
-                document.getElementById(id).querySelector(".task-container").innerHTML = "";
-            });
-            tasks.forEach(task => renderTask(task));
-        });
+    const res = await fetch("http://localhost:4000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData) // Chuyển object thành JSON
+    });
+
+    const data = await res.json();
+    console.log("Response:", data); // Debug log
+
+    if (res.ok) {
+        alert("Registered successfully! Please log in.");
+    } else {
+        alert("Registration failed: " + data.error);
+    }
 }
+
+
+
+async function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        localStorage.setItem("token", data.token);
+        alert("Login successful!");
+        fetchTasks(); // Tải danh sách công việc
+    } else {
+        alert("Login failed");
+    }
+}
+
+async function fetchTasks() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in first!");
+        return;
+    }
+
+    const res = await fetch("http://localhost:3000/tasks", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+        const tasks = await res.json();
+        document.getElementById("task-list").innerHTML = "";
+        tasks.forEach(task => renderTask(task));
+    } else {
+        alert("Failed to fetch tasks. Please log in again.");
+        localStorage.removeItem("token");
+    }
+}
+
 
 function renderTask(task) {
     let table = document.getElementById("task-list");
