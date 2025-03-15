@@ -60,21 +60,27 @@ app.post('/register', async (req, res) => {
     }
 });
 
-
 // Đăng nhập
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ where: { username } });
+
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
         const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: '1h' });
-        res.json({ token });
+
+        res.json({ 
+            token, 
+            user: { id: user.id, username: user.username } // Trả về userId
+        });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 });
+
 
 // Lấy thông tin user
 app.get('/profile', async (req, res) => {
